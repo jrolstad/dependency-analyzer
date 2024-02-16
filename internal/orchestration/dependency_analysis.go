@@ -69,7 +69,6 @@ func parseFile(filePath string) ([]*models.DependencyNode, error) {
 				//parent := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
 				//child := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
 
-				//fmt.Printf("%s ... %s", parent, child)
 			}
 
 		}
@@ -119,6 +118,24 @@ func addDependencyDataToNode(rawData string, parsedData *models.DependencyNode) 
 	if len(splitData) > 4 {
 		parsedData.Scope = splitData[4]
 	}
+}
+
+func createNode(rawData string) *models.DependencyNode {
+	splitData := strings.Split(rawData, ":")
+
+	parsedData := &models.DependencyNode{}
+	parsedData.FullName = cleanDependencyName(rawData)
+	parsedData.Namespace = splitData[0]
+	parsedData.Name = splitData[1]
+	parsedData.Type = splitData[2]
+	parsedData.Version = splitData[3]
+	parsedData.Children = make(map[string]*models.DependencyNode)
+
+	if len(splitData) > 4 {
+		parsedData.Scope = splitData[4]
+	}
+
+	return parsedData
 }
 
 func cleanDependencyName(name string) string {
