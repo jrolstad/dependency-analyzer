@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/jrolstad/dependency-analyzer/internal/core"
 	"github.com/jrolstad/dependency-analyzer/internal/orchestration"
 	"github.com/jrolstad/dependency-analyzer/internal/services"
 )
@@ -23,5 +24,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Dependencies:%v", len(dependencies))
+	fmt.Print(core.MapToJson(dependencies))
 }

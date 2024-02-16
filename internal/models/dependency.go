@@ -1,9 +1,12 @@
 package models
 
 type DependencyNode struct {
-	Parent   *DependencyNode
-	FullName string
-	Name     string
-	Version  string
-	Children []*DependencyNode
+	Parent    *DependencyNode
+	FullName  string
+	Name      string
+	Namespace string
+	Type      string
+	Version   string
+	Scope     string
+	Children  map[string]*DependencyNode
 }
