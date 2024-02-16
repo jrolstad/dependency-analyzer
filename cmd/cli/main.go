@@ -18,8 +18,9 @@ func main() {
 	flag.Parse()
 
 	fileService := services.NewFileSearchService()
+	parser := services.NewDependencyParser()
 
-	dependencies, err := orchestration.GetDependencies(path, filePattern, fileService)
+	dependencies, err := orchestration.GetDependencies(path, filePattern, fileService, parser)
 	if err != nil {
 		panic(err)
 	}

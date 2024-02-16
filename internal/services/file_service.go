@@ -18,7 +18,7 @@ func NewFileSearchService() FileSearchService {
 type FileSearchServiceImpl struct {
 }
 
-func (f FileSearchServiceImpl) Search(root string, pattern string) ([]string, error) {
+func (f *FileSearchServiceImpl) Search(root string, pattern string) ([]string, error) {
 	var files []string
 	err := filepath.WalkDir(root, visitDir(&files, pattern))
 	if err != nil {
