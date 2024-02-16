@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/jrolstad/dependency-analyzer/internal/orchestration"
+	"github.com/jrolstad/dependency-analyzer/internal/services"
 )
 
 func main() {
@@ -15,7 +16,9 @@ func main() {
 
 	flag.Parse()
 
-	dependencies, err := orchestration.GetDependencies(path, filePattern)
+	fileService := services.NewFileSearchService()
+
+	dependencies, err := orchestration.GetDependencies(path, filePattern, fileService)
 	if err != nil {
 		panic(err)
 	}
