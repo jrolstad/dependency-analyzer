@@ -49,10 +49,29 @@ func parseFile(filePath string) ([]*models.DependencyNode, error) {
 		addDependencyDataToNode(fileContents[0], parsedData)
 	} else {
 		for _, line := range fileContents {
+			// Do not process empty
+			if strings.TrimSpace(line) == "" {
+				continue
+			}
+			// First Line of the file
 			if strings.HasPrefix(line, "digraph") {
 				parentDependencyDataRaw := parseValueBetweenQuotes(line)
 				addDependencyDataToNode(parentDependencyDataRaw, parsedData)
+				parsedData.Children[parsedData.FullName] = parsedData
 			}
+			// Last Line of the file
+			if strings.HasPrefix(line, "{") {
+				continue
+			}
+			// Do the rest
+			relationshipData := strings.Split(line, "->")
+			if len(relationshipData) >= 2 {
+				//parent := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
+				//child := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
+
+				//fmt.Printf("%s ... %s", parent, child)
+			}
+
 		}
 	}
 	return []*models.DependencyNode{parsedData}, nil
@@ -91,7 +110,7 @@ func parseValueBetweenQuotes(s string) string {
 func addDependencyDataToNode(rawData string, parsedData *models.DependencyNode) {
 	splitData := strings.Split(rawData, ":")
 
-	parsedData.FullName = rawData
+	parsedData.FullName = cleanDependencyName(rawData)
 	parsedData.Namespace = splitData[0]
 	parsedData.Name = splitData[1]
 	parsedData.Type = splitData[2]
@@ -100,4 +119,14 @@ func addDependencyDataToNode(rawData string, parsedData *models.DependencyNode) 
 	if len(splitData) > 4 {
 		parsedData.Scope = splitData[4]
 	}
+}
+
+func cleanDependencyName(name string) string {
+	splitData := strings.Split(name, " ")
+
+	cleanValue := strings.Replace(splitData[0], "(", "", 1)
+	cleanValue = strings.Replace(cleanValue, ")", "", 1)
+	cleanValue = strings.TrimSpace(cleanValue)
+
+	return cleanValue
 }

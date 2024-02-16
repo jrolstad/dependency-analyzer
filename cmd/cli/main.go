@@ -24,5 +24,8 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Print(core.MapToJson(dependencies))
+	for _, item := range dependencies {
+		fmt.Print(core.MapToJson(item))
+	}
+
 }
