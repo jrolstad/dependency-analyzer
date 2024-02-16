@@ -26,6 +26,10 @@ func main() {
 
 	for _, item := range dependencies {
 		fmt.Print(core.MapToJson(item))
+
+		for _, child := range item.Children {
+			fmt.Println(" " + core.MapToJson(child))
+		}
 	}
 
 }

@@ -35,16 +35,9 @@ func parseFile(filePath string) ([]*models.DependencyNode, error) {
 		return make([]*models.DependencyNode, 0), nil
 	}
 
-	parsedData := &models.DependencyNode{
-		Parent:    nil,
-		FullName:  "",
-		Namespace: "",
-		Name:      "",
-		Version:   "",
-		Scope:     "",
-		Children:  make(map[string]*models.DependencyNode),
-	}
+	parsedData := createEmptyNode()
 
+	allDependencies := make(map[string]*models.DependencyNode)
 	if len(fileContents) == 1 {
 		addDependencyDataToNode(fileContents[0], parsedData)
 	} else {
@@ -57,7 +50,8 @@ func parseFile(filePath string) ([]*models.DependencyNode, error) {
 			if strings.HasPrefix(line, "digraph") {
 				parentDependencyDataRaw := parseValueBetweenQuotes(line)
 				addDependencyDataToNode(parentDependencyDataRaw, parsedData)
-				parsedData.Children[parsedData.FullName] = parsedData
+				allDependencies[parsedData.FullName] = parsedData
+
 			}
 			// Last Line of the file
 			if strings.HasPrefix(line, "{") {
@@ -66,9 +60,21 @@ func parseFile(filePath string) ([]*models.DependencyNode, error) {
 			// Do the rest
 			relationshipData := strings.Split(line, "->")
 			if len(relationshipData) >= 2 {
-				//parent := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
-				//child := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
+				parent := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
+				child := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
 
+				if allDependencies[parent] == nil {
+					allDependencies[parent] = createNode(parent)
+				}
+
+				if allDependencies[child] == nil {
+					allDependencies[child] = createNode(parent)
+				}
+
+				parentNode := allDependencies[parent]
+				if parentNode.Children[child] == nil {
+					parentNode.Children[child] = allDependencies[child]
+				}
 			}
 
 		}
@@ -104,6 +110,18 @@ func parseValueBetweenQuotes(s string) string {
 		return s[start+1 : start+1+end]
 	}
 	return ""
+}
+
+func createEmptyNode() *models.DependencyNode {
+	return &models.DependencyNode{
+		Parent:    nil,
+		FullName:  "",
+		Namespace: "",
+		Name:      "",
+		Version:   "",
+		Scope:     "",
+		Children:  make(map[string]*models.DependencyNode),
+	}
 }
 
 func addDependencyDataToNode(rawData string, parsedData *models.DependencyNode) {
