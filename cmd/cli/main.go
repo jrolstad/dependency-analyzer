@@ -27,7 +27,7 @@ func main() {
 	}
 
 	inScope := orchestration.IdentifyInScopeIdentities(allDependencies)
-	inScopeNotReferenced := orchestration.IdentifyInScopeDependenciesNotReferencedByOthers(inScope, allDependencies)
+	inScopeNotReferenced := orchestration.IdentifyInScopeDependenciesNotReferencedByOthers(inScope)
 
 	showData(inScopeNotReferenced)
 }

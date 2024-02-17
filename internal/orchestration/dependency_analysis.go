@@ -38,6 +38,7 @@ func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode)
 				for _, parent := range value.Parents {
 					if strings.HasPrefix(parent.FullName, "com.oracle") &&
 						!strings.HasPrefix(value.FullName, "com.oracle") &&
+						!strings.HasPrefix(value.FullName, "javax.") &&
 						!strings.EqualFold(value.Scope, "test") &&
 						!strings.EqualFold(value.Scope, "provided") {
 						inScope[value.FullName] = value
@@ -51,18 +52,23 @@ func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode)
 	return inScope
 }
 
-func IdentifyInScopeDependenciesNotReferencedByOthers(toAnalyze map[string]*models.DependencyNode, allDependencies []map[string]*models.DependencyNode) map[string]*models.DependencyNode {
-	result := make(map[string]*models.DependencyNode)
+func IdentifyInScopeDependenciesNotReferencedByOthers(toAnalyze map[string]*models.DependencyNode) map[string]*models.DependencyNode {
+	toRemove := make(map[string]*models.DependencyNode)
 	for _, item := range toAnalyze {
-		for _, subset := range allDependencies {
-			for _, all := range subset {
-				if !strings.HasPrefix(all.FullName, "com.oracle") &&
-					all.Children[item.FullName] == nil {
-					result[item.FullName] = item
-				}
+		for _, parent := range item.Parents {
+			if !strings.HasPrefix(parent.FullName, "com.oracle") {
+				toRemove[item.FullName] = item
 			}
 		}
 	}
 
-	return result
+	results := make(map[string]*models.DependencyNode)
+
+	for _, item := range toAnalyze {
+		if toRemove[item.FullName] == nil {
+			results[item.FullName] = item
+		}
+	}
+
+	return results
 }

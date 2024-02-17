@@ -50,15 +50,21 @@ func (d *DependencyParserImpl) ParseFile(filePath string) ([]*models.DependencyN
 			// Do the rest
 			relationshipData := strings.Split(line, "->")
 			if len(relationshipData) >= 2 {
-				parent := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
-				child := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
+				parentRaw := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
+				parent := sanitizeDependencyName(parentRaw)
+				childRaw := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
+				child := sanitizeDependencyName(childRaw)
+
+				if strings.HasSuffix(parentRaw, "test") || strings.HasSuffix(childRaw, "test") {
+					continue
+				}
 
 				if allDependencies[parent] == nil {
-					allDependencies[parent] = createNode(parent)
+					allDependencies[parent] = createNode(parentRaw)
 				}
 
 				if allDependencies[child] == nil {
-					allDependencies[child] = createNode(child)
+					allDependencies[child] = createNode(childRaw)
 				}
 
 				parentNode := allDependencies[parent]
