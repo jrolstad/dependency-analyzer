@@ -63,7 +63,7 @@ func (d *DependencyParserImpl) ParseFile(filePath string) ([]*models.DependencyN
 				parentNode := allDependencies[parent]
 
 				if parentNode.Children[child] == nil {
-					allDependencies[child].Parent = parentNode
+					allDependencies[child].Parents[parentNode.FullName] = parentNode
 					parentNode.Children[child] = allDependencies[child]
 				}
 			}
@@ -105,7 +105,7 @@ func parseValueBetweenQuotes(s string) string {
 
 func createEmptyNode() *models.DependencyNode {
 	return &models.DependencyNode{
-		Parent:    nil,
+		Parents:   make(map[string]*models.DependencyNode),
 		FullName:  "",
 		Namespace: "",
 		Name:      "",
@@ -133,6 +133,7 @@ func createNode(rawData string) *models.DependencyNode {
 	splitData := strings.Split(rawData, ":")
 
 	parsedData := &models.DependencyNode{}
+	parsedData.Parents = make(map[string]*models.DependencyNode)
 	parsedData.FullName = cleanDependencyName(rawData)
 	parsedData.Namespace = splitData[0]
 	parsedData.Name = splitData[1]

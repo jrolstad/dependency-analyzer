@@ -34,12 +34,16 @@ func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode)
 
 	for _, item := range dependencies {
 		for _, value := range item {
-			if value.Parent != nil &&
-				strings.HasPrefix(value.Parent.FullName, "com.oracle") &&
-				!strings.HasPrefix(value.FullName, "com.oracle") &&
-				!strings.EqualFold(value.Scope, "test") &&
-				!strings.EqualFold(value.Scope, "provided") {
-				inScope[value.FullName] = value
+			if value.Parents != nil {
+				for _, parent := range value.Parents {
+					if strings.HasPrefix(parent.FullName, "com.oracle") &&
+						!strings.HasPrefix(value.FullName, "com.oracle") &&
+						!strings.EqualFold(value.Scope, "test") &&
+						!strings.EqualFold(value.Scope, "provided") {
+						inScope[value.FullName] = value
+					}
+				}
+
 			}
 		}
 	}

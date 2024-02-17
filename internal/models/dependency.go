@@ -1,7 +1,7 @@
 package models
 
 type DependencyNode struct {
-	Parent    *DependencyNode
+	Parents   map[string]*DependencyNode
 	FullName  string
 	Name      string
 	Namespace string
