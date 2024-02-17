@@ -9,7 +9,7 @@ import (
 )
 
 type DependencyParser interface {
-	ParseFile(filePath string) ([]*models.DependencyNode, map[string]*models.DependencyNode, error)
+	ParseFile(filePath string) (map[string]*models.DependencyNode, error)
 }
 
 func NewDependencyParser() DependencyParser {
@@ -19,18 +19,15 @@ func NewDependencyParser() DependencyParser {
 type DependencyParserImpl struct {
 }
 
-func (d *DependencyParserImpl) ParseFile(filePath string) ([]*models.DependencyNode, map[string]*models.DependencyNode, error) {
+func (d *DependencyParserImpl) ParseFile(filePath string) (map[string]*models.DependencyNode, error) {
 	fileContents, err := readFileContents(filePath)
 	if err != nil {
-		return make([]*models.DependencyNode, 0), make(map[string]*models.DependencyNode), nil
+		return make(map[string]*models.DependencyNode), nil
 	}
 
-	parsedData := createEmptyNode()
+	dependenciesByName := make(map[string]*models.DependencyNode)
 
-	allDependencies := make(map[string]*models.DependencyNode)
-	if len(fileContents) == 1 {
-		addDependencyDataToNode(fileContents[0], parsedData)
-	} else {
+	if len(fileContents) > 1 {
 		for _, line := range fileContents {
 			// Do not process empty
 			if strings.TrimSpace(line) == "" {
@@ -38,10 +35,7 @@ func (d *DependencyParserImpl) ParseFile(filePath string) ([]*models.DependencyN
 			}
 			// First Line of the file
 			if strings.HasPrefix(line, "digraph") {
-				parentDependencyDataRaw := parseValueBetweenQuotes(line)
-				addDependencyDataToNode(parentDependencyDataRaw, parsedData)
-				allDependencies[parsedData.FullName] = parsedData
-
+				continue
 			}
 			// Last Line of the file
 			if strings.HasPrefix(line, "{") {
@@ -51,34 +45,38 @@ func (d *DependencyParserImpl) ParseFile(filePath string) ([]*models.DependencyN
 			relationshipData := strings.Split(line, "->")
 			if len(relationshipData) >= 2 {
 				parentRaw := cleanDependencyName(parseValueBetweenQuotes(relationshipData[0]))
-				parent := sanitizeDependencyName(parentRaw)
 				childRaw := cleanDependencyName(parseValueBetweenQuotes(relationshipData[1]))
-				child := sanitizeDependencyName(childRaw)
 
-				if strings.HasSuffix(parentRaw, "test") || strings.HasSuffix(childRaw, "test") {
+				parentNode := createNode(parentRaw)
+				childNode := createNode(childRaw)
+
+				if d.isTestDependency(parentNode, childNode) {
 					continue
 				}
 
-				if allDependencies[parent] == nil {
-					allDependencies[parent] = createNode(parentRaw)
+				if dependenciesByName[parentNode.FullName] == nil {
+					dependenciesByName[parentNode.FullName] = parentNode
 				}
 
-				if allDependencies[child] == nil {
-					allDependencies[child] = createNode(childRaw)
+				if dependenciesByName[childNode.FullName] == nil {
+					dependenciesByName[childNode.FullName] = childNode
 				}
 
-				parentNode := allDependencies[parent]
+				resolvedParentNode := dependenciesByName[parentNode.FullName]
+				resolvedChildNode := dependenciesByName[childNode.FullName]
 
-				if parentNode.Children[child] == nil {
-					allDependencies[child].Parents[parentNode.FullName] = parentNode
-					parentNode.Children[child] = allDependencies[child]
-				}
+				resolvedParentNode.Children[resolvedChildNode.FullName] = resolvedChildNode
+				resolvedChildNode.Parents[resolvedParentNode.FullName] = resolvedParentNode
 			}
 
 		}
 	}
-	return []*models.DependencyNode{parsedData}, allDependencies, nil
+	return dependenciesByName, nil
 
+}
+
+func (d *DependencyParserImpl) isTestDependency(parentNode *models.DependencyNode, childNode *models.DependencyNode) bool {
+	return strings.EqualFold(parentNode.Scope, "test") || strings.EqualFold(childNode.Scope, "test")
 }
 
 func readFileContents(filePath string) ([]string, error) {
@@ -108,32 +106,6 @@ func parseValueBetweenQuotes(s string) string {
 		return s[start+1 : start+1+end]
 	}
 	return ""
-}
-
-func createEmptyNode() *models.DependencyNode {
-	return &models.DependencyNode{
-		Parents:   make(map[string]*models.DependencyNode),
-		FullName:  "",
-		Namespace: "",
-		Name:      "",
-		Version:   "",
-		Scope:     "",
-		Children:  make(map[string]*models.DependencyNode),
-	}
-}
-
-func addDependencyDataToNode(rawData string, parsedData *models.DependencyNode) {
-	splitData := strings.Split(rawData, ":")
-
-	parsedData.FullName = sanitizeDependencyName(cleanDependencyName(rawData))
-	parsedData.Namespace = splitData[0]
-	parsedData.Name = splitData[1]
-	parsedData.Type = splitData[2]
-	parsedData.Version = splitData[3]
-
-	if len(splitData) > 4 {
-		parsedData.Scope = splitData[4]
-	}
 }
 
 func createNode(rawData string) *models.DependencyNode {
