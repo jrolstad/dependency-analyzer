@@ -28,7 +28,7 @@ func GetDependencies(path string, filePattern string, fileService services.FileS
 	return parsedDependencies, allParsedDependencies, nil
 }
 
-func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode) map[string]*models.DependencyNode {
+func IdentifyInScopeDependencies(dependencies []map[string]*models.DependencyNode) map[string]*models.DependencyNode {
 	inScope := make(map[string]*models.DependencyNode)
 
 	for _, item := range dependencies {
@@ -51,7 +51,7 @@ func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode)
 	return inScope
 }
 
-func IdentifyInScopeDependenciesNotReferencedByOthers(toAnalyze map[string]*models.DependencyNode) map[string]*models.DependencyNode {
+func IdentifyDependenciesNotReferencedByOthers(toAnalyze map[string]*models.DependencyNode) map[string]*models.DependencyNode {
 	toRemove := getDependenciesReferencedByOthers(toAnalyze)
 
 	results := make(map[string]*models.DependencyNode)

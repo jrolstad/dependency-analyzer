@@ -26,8 +26,8 @@ func main() {
 		panic(err)
 	}
 
-	inScope := orchestration.IdentifyInScopeIdentities(allDependencies)
-	inScopeNotReferenced := orchestration.IdentifyInScopeDependenciesNotReferencedByOthers(inScope)
+	inScope := orchestration.IdentifyInScopeDependencies(allDependencies)
+	inScopeNotReferenced := orchestration.IdentifyDependenciesNotReferencedByOthers(inScope)
 
 	showData(inScopeNotReferenced)
 }
