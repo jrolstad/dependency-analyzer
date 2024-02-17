@@ -57,11 +57,13 @@ func (d *DependencyParserImpl) ParseFile(filePath string) ([]*models.DependencyN
 				}
 
 				if allDependencies[child] == nil {
-					allDependencies[child] = createNode(parent)
+					allDependencies[child] = createNode(child)
 				}
 
 				parentNode := allDependencies[parent]
+
 				if parentNode.Children[child] == nil {
+					allDependencies[child].Parent = parentNode
 					parentNode.Children[child] = allDependencies[child]
 				}
 			}

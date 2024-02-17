@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -31,7 +30,6 @@ func (f *FileSearchServiceImpl) Search(root string, pattern string) ([]string, e
 func visitDir(files *[]string, pattern string) fs.WalkDirFunc {
 	return func(path string, d os.DirEntry, err error) error {
 		if err != nil {
-			fmt.Println("Error:", err)
 			return err
 		}
 
@@ -39,7 +37,6 @@ func visitDir(files *[]string, pattern string) fs.WalkDirFunc {
 		if !d.IsDir() {
 			matched, err := filepath.Match(pattern, filepath.Base(path))
 			if err != nil {
-				fmt.Println("Match error:", err)
 				return err
 			}
 

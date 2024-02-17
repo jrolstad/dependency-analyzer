@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/jrolstad/dependency-analyzer/internal/core"
+	"github.com/jrolstad/dependency-analyzer/internal/models"
 	"github.com/jrolstad/dependency-analyzer/internal/orchestration"
 	"github.com/jrolstad/dependency-analyzer/internal/services"
+	"sort"
 )
 
 func main() {
@@ -20,17 +21,29 @@ func main() {
 	fileService := services.NewFileSearchService()
 	parser := services.NewDependencyParser()
 
-	dependencies, err := orchestration.GetDependencies(path, filePattern, fileService, parser)
+	_, allDependencies, err := orchestration.GetDependencies(path, filePattern, fileService, parser)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, item := range dependencies {
-		fmt.Print(core.MapToJson(item))
-
-		for _, child := range item.Children {
-			fmt.Println(" " + core.MapToJson(child))
-		}
+	inScope, err := orchestration.IdentifyInScopeIdentities(allDependencies)
+	if err != nil {
+		panic(err)
 	}
 
+	showData(inScope)
+}
+
+func showData(data map[string]*models.DependencyNode) {
+
+	keys := make([]string, 0, len(data))
+
+	for key := range data {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		fmt.Println(data[key].FullName)
+	}
 }
