@@ -29,7 +29,7 @@ func GetDependencies(path string, filePattern string, fileService services.FileS
 	return parsedDependencies, allParsedDependencies, nil
 }
 
-func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode) (map[string]*models.DependencyNode, error) {
+func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode) map[string]*models.DependencyNode {
 	inScope := make(map[string]*models.DependencyNode)
 
 	for _, item := range dependencies {
@@ -48,5 +48,21 @@ func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode)
 		}
 	}
 
-	return inScope, nil
+	return inScope
+}
+
+func IdentifyInScopeDependenciesNotReferencedByOthers(toAnalyze map[string]*models.DependencyNode, allDependencies []map[string]*models.DependencyNode) map[string]*models.DependencyNode {
+	result := make(map[string]*models.DependencyNode)
+	for _, item := range toAnalyze {
+		for _, subset := range allDependencies {
+			for _, all := range subset {
+				if !strings.HasPrefix(all.FullName, "com.oracle") &&
+					all.Children[item.FullName] == nil {
+					result[item.FullName] = item
+				}
+			}
+		}
+	}
+
+	return result
 }

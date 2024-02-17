@@ -26,12 +26,10 @@ func main() {
 		panic(err)
 	}
 
-	inScope, err := orchestration.IdentifyInScopeIdentities(allDependencies)
-	if err != nil {
-		panic(err)
-	}
+	inScope := orchestration.IdentifyInScopeIdentities(allDependencies)
+	inScopeNotReferenced := orchestration.IdentifyInScopeDependenciesNotReferencedByOthers(inScope, allDependencies)
 
-	showData(inScope)
+	showData(inScopeNotReferenced)
 }
 
 func showData(data map[string]*models.DependencyNode) {

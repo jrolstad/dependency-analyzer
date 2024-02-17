@@ -2,6 +2,7 @@ package services
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/jrolstad/dependency-analyzer/internal/models"
 	"os"
 	"strings"
@@ -118,7 +119,7 @@ func createEmptyNode() *models.DependencyNode {
 func addDependencyDataToNode(rawData string, parsedData *models.DependencyNode) {
 	splitData := strings.Split(rawData, ":")
 
-	parsedData.FullName = cleanDependencyName(rawData)
+	parsedData.FullName = sanitizeDependencyName(cleanDependencyName(rawData))
 	parsedData.Namespace = splitData[0]
 	parsedData.Name = splitData[1]
 	parsedData.Type = splitData[2]
@@ -134,7 +135,7 @@ func createNode(rawData string) *models.DependencyNode {
 
 	parsedData := &models.DependencyNode{}
 	parsedData.Parents = make(map[string]*models.DependencyNode)
-	parsedData.FullName = cleanDependencyName(rawData)
+	parsedData.FullName = sanitizeDependencyName(cleanDependencyName(rawData))
 	parsedData.Namespace = splitData[0]
 	parsedData.Name = splitData[1]
 	parsedData.Type = splitData[2]
@@ -156,4 +157,12 @@ func cleanDependencyName(name string) string {
 	cleanValue = strings.TrimSpace(cleanValue)
 
 	return cleanValue
+}
+
+func sanitizeDependencyName(name string) string {
+	parts := strings.Split(name, ":")
+
+	sanitizedName := fmt.Sprintf("%s:%s:%s:%s", parts[0], parts[1], parts[2], parts[3])
+
+	return sanitizedName
 }
