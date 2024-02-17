@@ -16,13 +16,12 @@ func GetDependencies(path string, filePattern string, fileService services.FileS
 	allParsedDependencies := make([]map[string]*models.DependencyNode, 0)
 	processingErrors := make([]error, 0)
 	for _, file := range files {
-		tree, all, err := dependencyParser.ParseFile(file)
+		all, err := dependencyParser.ParseFile(file)
 		if err != nil {
 			processingErrors = append(processingErrors, err)
 			continue
 		}
 
-		parsedDependencies = append(parsedDependencies, tree...)
 		allParsedDependencies = append(allParsedDependencies, all)
 	}
 
@@ -53,6 +52,19 @@ func IdentifyInScopeIdentities(dependencies []map[string]*models.DependencyNode)
 }
 
 func IdentifyInScopeDependenciesNotReferencedByOthers(toAnalyze map[string]*models.DependencyNode) map[string]*models.DependencyNode {
+	toRemove := getDependenciesReferencedByOthers(toAnalyze)
+
+	results := make(map[string]*models.DependencyNode)
+	for _, item := range toAnalyze {
+		if toRemove[item.FullName] == nil {
+			results[item.FullName] = item
+		}
+	}
+
+	return results
+}
+
+func getDependenciesReferencedByOthers(toAnalyze map[string]*models.DependencyNode) map[string]*models.DependencyNode {
 	toRemove := make(map[string]*models.DependencyNode)
 	for _, item := range toAnalyze {
 		for _, parent := range item.Parents {
@@ -61,14 +73,5 @@ func IdentifyInScopeDependenciesNotReferencedByOthers(toAnalyze map[string]*mode
 			}
 		}
 	}
-
-	results := make(map[string]*models.DependencyNode)
-
-	for _, item := range toAnalyze {
-		if toRemove[item.FullName] == nil {
-			results[item.FullName] = item
-		}
-	}
-
-	return results
+	return toRemove
 }
