@@ -8,7 +8,6 @@ The dependency analyzer is a cli tool that analyzes maven generated dot files an
 mvn dependency:tree -DoutputType=dot -DoutputFile=dependencies.dot -Dverbose=true
 ```
 2. Once files are generated, cd to the cmd\cli directory and run the main.go application.  Assuming the generated files from step 1 are in the data directory two levels up, a sample command is:
-To run the cli
 ```shell
 go run main.go --path ..\..\data\ --filePattern *.dot --includedParents com.oracle --excludedDependencies com.oracle,javax. --mode notreferenced
 ```
