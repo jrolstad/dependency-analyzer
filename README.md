@@ -6,3 +6,8 @@ Generate the dependency data files by running:
 ```shell
 mvn dependency:tree -DoutputType=dot -DoutputFile=dependencies.dot -Dverbose=true
 ```
+
+To run the cli
+```shell
+go run main.go --path ..\..\data\ --filePattern *.dot
+```
